@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.herrerogusano.ToDoList.model.TodoItem;
 import com.herrerogusano.ToDoList.repository.TodoRepository;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -16,17 +17,20 @@ public class TodoController {
 	@Autowired
 	private TodoRepository todoRepository;
 	
-	@GetMapping
+	@GetMapping("/read")
+	@PreAuthorize("hasAnyRole('USER', 'ADMIN')")
 	public List<TodoItem> findAll(){
 		return todoRepository.findAll();
 	}
-	
-	@PostMapping(consumes = {"application/json"})
+
+	@PostMapping(path = "/post", consumes = {"application/json"})
+	@PreAuthorize("hasRole('ADMIN')")
 	public TodoItem save(@RequestBody TodoItem todoItem) {
 		return todoRepository.save(todoItem);
 	}
-	
-	@PutMapping//(consumes = {"application/json"})
+
+	@PutMapping(path = "/put")//(consumes = {"application/json"})
+	@PreAuthorize("hasRole('ADMIN')")
 	public TodoItem update(@RequestBody TodoItem updatedItem) {
 		TodoItem existingItem = todoRepository.findById(updatedItem.getId()).orElse(null);
 		if(existingItem!=null) {
@@ -39,7 +43,8 @@ public class TodoController {
 		
 	}
 	
-	@DeleteMapping("/{id}")
+	@DeleteMapping(path = "/delete/{id}")
+	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<String> delete(@PathVariable Long id) {
 	    // Verificar si el elemento existe en la base de datos
 	    boolean itemExists = todoRepository.existsById(id);
